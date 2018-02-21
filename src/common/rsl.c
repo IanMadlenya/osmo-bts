@@ -2489,6 +2489,13 @@ int lapdm_rll_tx_cb(struct msgb *msg, struct lapdm_entity *le, void *ctx)
 		LOGP(DRSL, LOGL_INFO, "%s Handing RLL msg %s from LAPDm to MEAS REP\n",
 			gsm_lchan_name(lchan), rsl_msg_name(rh->msg_type));
 
+		rc = rsl_tx_meas_res(lchan, msgb_l3(msg), msgb_l3len(msg), le);
+		msgb_free(msg);
+		return rc;
+	} else {
+		LOGP(DRSL, LOGL_INFO, "%s Fwd RLL msg %s from LAPDm to A-bis\n",
+			gsm_lchan_name(lchan), rsl_msg_name(rh->msg_type));
+
 		/* REL_IND handling */
 		if (rh->msg_type == RSL_MT_REL_IND &&
 			(lchan->type == GSM_LCHAN_TCH_F || lchan->type == GSM_LCHAN_TCH_H)) {
@@ -2504,13 +2511,6 @@ int lapdm_rll_tx_cb(struct msgb *msg, struct lapdm_entity *le, void *ctx)
 			lchan->pending_rel_ind_msg = msg;
 			return 0;
 		}
-
-		rc = rsl_tx_meas_res(lchan, msgb_l3(msg), msgb_l3len(msg), le);
-		msgb_free(msg);
-		return rc;
-	} else {
-		LOGP(DRSL, LOGL_INFO, "%s Fwd RLL msg %s from LAPDm to A-bis\n",
-			gsm_lchan_name(lchan), rsl_msg_name(rh->msg_type));
 
 		return abis_bts_rsl_sendmsg(msg);
 	}
